@@ -1,298 +1,212 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { ModelType } from './types';
-import { generateModelImage, generateModelVideo } from './services/geminiService';
+import { generateModelImage } from './services/geminiService';
 import Loader from './components/Loader';
 
-// Base64 for the MEULOOKmamãe logo
-const logoBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAIACAYAAAD0eNT6AAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEwAACxMBAJqcGAAAIABJREFUeJzs3Xl8VFX9x/Hvu90lu0kCCYSQWUjZJQu4LhYFpeKiYFfBuvUqFtfWVVu1Wr+rqGvBqoiK4qqACooLghAEJIQsJBBCdjfJJrvdff8/p3NIZGaSySQncvL9Xq/nkZCQycx3zsk55/c5v3tFRUREvN+I9R4gIiIi3vQEFBERERcQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQEREREVdQ-';
-
-const Header: React.FC = () => (
-  <header className="bg-white shadow-md">
-    <div className="container mx-auto px-4 py-4 flex items-center space-x-6">
-      <img src={logoBase64} alt="MEULOOK mamãe Logo" className="h-20 w-auto" />
-      <div>
-        <h1 className="text-3xl font-extrabold text-gray-800">Provador Virtual MEULOOKmamãe</h1>
-        <p className="text-gray-600 mt-1">Envie a foto de uma roupa e veja a mágica acontecer!</p>
-      </div>
-    </div>
-  </header>
-);
-
-const fileToBase64 = (file: File): Promise<{ base64: string, mimeType: string }> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      const result = reader.result as string;
-      const mimeType = result.split(';')[0].split(':')[1];
-      const base64 = result.split(',')[1];
-      resolve({ base64, mimeType });
-    };
-    reader.onerror = error => reject(error);
-  });
-};
-
 const App: React.FC = () => {
-  const [clothingImage, setClothingImage] = useState<{ file: File, preview: string, base64: string, mimeType: string } | null>(null);
+  const [clothingImage, setClothingImage] = useState<{ url: string; file: File } | null>(null);
   const [modelType, setModelType] = useState<ModelType>(ModelType.ADULT);
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
-  const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
-  const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
-  const [videoGenerationMessage, setVideoGenerationMessage] = useState('');
+  const [pose, setPose] = useState<string>('Pose Frontal');
+  const [generatedImage, setGeneratedImage] = useState<{ url: string; base64: string, mimeType: string } | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadingMessage, setLoadingMessage] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
-  const [apiKeySelected, setApiKeySelected] = useState(false);
 
-  useEffect(() => {
-    const checkApiKey = async () => {
-      if(window.aistudio && await window.aistudio.hasSelectedApiKey()){
-        setApiKeySelected(true);
-      }
-    };
-    checkApiKey();
-  }, []);
+  const poses: { [key: string]: string } = {
+    'Pose Frontal': 'de pé, braços ao lado do corpo, olhando para a câmera',
+    'De Lado': 'de pé, de perfil, olhando por cima do ombro',
+    'Mãos na Cintura': 'de pé, com uma mão no quadril, olhando para a câmera com um leve sorriso',
+    'Caminhando': 'andando em direção à câmera',
+    'Pose Dinâmica': 'em uma pose de moda dinâmica e energética',
+  };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      try {
-        const { base64, mimeType } = await fileToBase64(file);
-        setClothingImage({
-          file,
-          preview: URL.createObjectURL(file),
-          base64,
-          mimeType
-        });
-        setGeneratedImage(null);
-        setGeneratedVideoUrl(null);
-        setError(null);
-      } catch (err) {
-        setError("Não foi possível processar a imagem.");
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        setError("O arquivo de imagem é muito grande. Por favor, escolha um arquivo com menos de 10MB.");
+        return;
       }
+      setClothingImage({
+        url: URL.createObjectURL(file),
+        file: file,
+      });
+      setGeneratedImage(null);
+      setError(null);
     }
   };
+
+  const handleError = (err: any) => {
+      let errorMessage = "Ocorreu um erro inesperado. Tente novamente.";
+      if (typeof err === 'string') {
+        errorMessage = err;
+      } else if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+
+      if (errorMessage === "API_KEY_NOT_FOUND" || errorMessage === "API_KEY_INVALID") {
+          errorMessage = "O serviço está temporariamente indisponível devido a um problema de configuração. Por favor, tente novamente mais tarde.";
+      } else if (errorMessage.includes("QUOTA_EXCEEDED")) {
+        errorMessage = "Cota de API excedida. Por favor, verifique seu faturamento ou tente novamente mais tarde.";
+      }
+      
+      setError(errorMessage);
+      console.error(err);
+  }
 
   const handleGenerateImage = useCallback(async () => {
     if (!clothingImage) {
-      setError("Por favor, envie uma imagem primeiro.");
+      setError('Por favor, carregue uma imagem da roupa primeiro.');
       return;
     }
+
+    setIsLoading(true);
+    setLoadingMessage('Gerando imagem com o modelo...');
     setError(null);
-    setIsGeneratingImage(true);
     setGeneratedImage(null);
-    setGeneratedVideoUrl(null);
+
     try {
-      const imageB64 = await generateModelImage(clothingImage.base64, clothingImage.mimeType, modelType);
-      setGeneratedImage(`data:image/png;base64,${imageB64}`);
-    } catch (err: any) {
-      console.error(err);
-      if (err.message === "QUOTA_EXCEEDED") {
-        setError("QUOTA_EXCEEDED");
-      } else {
-        setError("Ocorreu um erro ao gerar a imagem. Tente novamente.");
-      }
-    } finally {
-      setIsGeneratingImage(false);
-    }
-  }, [clothingImage, modelType]);
-
-  const handleSelectApiKey = async () => {
-    await window.aistudio.openSelectKey();
-    setApiKeySelected(true); // Assume success to avoid race condition
-  };
-  
-  const handleGenerateVideo = useCallback(async () => {
-    if (!generatedImage) {
-      setError("Gere uma imagem primeiro para criar um vídeo.");
-      return;
-    }
-    setError(null);
-    setIsGeneratingVideo(true);
-    setVideoGenerationMessage("Iniciando a criação do vídeo...");
-
-    const checkApiKeyAndGenerate = async () => {
+      const reader = new FileReader();
+      reader.readAsDataURL(clothingImage.file);
+      reader.onloadend = async () => {
+        const base64data = (reader.result as string).split(',')[1];
         try {
-            const hasKey = window.aistudio && await window.aistudio.hasSelectedApiKey();
-            if (!hasKey) {
-                setApiKeySelected(false);
-                setError("Por favor, selecione uma chave de API para gerar vídeos.");
-                setIsGeneratingVideo(false);
-                return;
-            }
-            setApiKeySelected(true);
-
-            setVideoGenerationMessage("Criando seu vídeo... Isso pode levar alguns minutos.");
-            const modelImageBase64 = generatedImage.split(',')[1];
-            const videoUrl = await generateModelVideo(modelImageBase64);
-            setGeneratedVideoUrl(videoUrl);
+          const result = await generateModelImage(base64data, clothingImage.file.type, modelType, poses[pose]);
+          setGeneratedImage({
+            url: `data:${result.mimeType};base64,${result.base64}`,
+            base64: result.base64,
+            mimeType: result.mimeType
+          });
         } catch (err: any) {
-            console.error(err);
-            if (err.message === "API_KEY_INVALID") {
-                setError("A chave de API selecionada é inválida ou não foi encontrada. Por favor, selecione outra.");
-                setApiKeySelected(false);
-            } else if (err.message === "QUOTA_EXCEEDED") {
-                setError("QUOTA_EXCEEDED");
-            } else {
-                setError("Ocorreu um erro ao gerar o vídeo. Tente novamente.");
-            }
+           handleError(err);
         } finally {
-            setIsGeneratingVideo(false);
-            setVideoGenerationMessage('');
+          setIsLoading(false);
         }
+      };
+      reader.onerror = () => {
+        handleError(new Error("Não foi possível ler o arquivo de imagem."));
+        setIsLoading(false);
+      }
+    } catch (err: any) {
+      handleError(err);
+      setIsLoading(false);
     }
-    
-    checkApiKeyAndGenerate();
-
-  }, [generatedImage]);
-
-  const handleDownloadImage = useCallback(() => {
-    if (!generatedImage) return;
-    const link = document.createElement('a');
-    link.href = generatedImage;
-    link.download = 'modelo-virtual-meulookmamae.png';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }, [generatedImage]);
+  }, [clothingImage, modelType, pose, poses]);
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
-      <Header />
-      <main className="container mx-auto p-4 md:p-8">
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative mb-6" role="alert">
-            <strong className="font-bold">Erro: </strong>
-            {error === 'QUOTA_EXCEEDED' ? (
-              <span className="block sm:inline">
-                Você excedeu sua cota de uso da API. Por favor, verifique seu plano e detalhes de faturamento. {' '}
-                <a href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:text-red-800">
-                  Saiba mais sobre os limites
-                </a>.
-              </span>
-            ) : (
-              <span className="block sm:inline">{error}</span>
-            )}
+    <div className="min-h-screen bg-gray-100 font-sans text-gray-800">
+      <header className="bg-white">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center space-x-4">
+              <img src="https://iili.io/Kb795as.png" alt="Logo" className="h-16 w-auto" />
+              <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Provador Virtual</h1>
+                  <p className="text-sm sm:text-base text-gray-600 mt-1">Envie a foto de uma roupa e veja a mágica acontecer!</p>
+              </div>
           </div>
-        )}
+        </div>
+      </header>
+
+      <main className="container mx-auto p-4 sm:p-6 lg:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Controls Column */}
-          <div className="bg-white p-6 rounded-xl shadow-lg space-y-6">
-            <div>
-              <h2 className="text-xl font-semibold text-gray-700 mb-2">1. Envie a Roupa</h2>
-              <div className="mt-2 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-                <div className="space-y-1 text-center">
-                  {clothingImage ? (
-                    <img src={clothingImage.preview} alt="Pré-visualização da roupa" className="mx-auto h-48 w-auto rounded-md object-contain"/>
-                  ) : (
+          
+          <div className="bg-white p-6 rounded-lg border border-gray-200">
+            <div className="space-y-8">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">1. Envie a Roupa</h3>
+                <div className="mt-4 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                  <div className="space-y-1 text-center">
                     <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                     </svg>
-                  )}
-                  <div className="flex text-sm text-gray-600 justify-center">
-                    <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
-                      <span>Carregar um arquivo</span>
-                      <input id="file-upload" name="file-upload" type="file" className="sr-only" accept="image/*" onChange={handleImageUpload} />
-                    </label>
+                    <div className="flex text-sm text-gray-600">
+                      <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none">
+                        <span>Carregar um arquivo</span>
+                        <input id="file-upload" name="file-upload" type="file" className="sr-only" accept="image/png, image/jpeg, image/gif" onChange={handleImageUpload} />
+                      </label>
+                    </div>
+                    <p className="text-xs text-gray-500">PNG, JPG, GIF até 10MB</p>
                   </div>
-                  <p className="text-xs text-gray-500">PNG, JPG, GIF até 10MB</p>
                 </div>
               </div>
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-700 mb-3">2. Escolha o Modelo</h2>
-              <div className="flex space-x-4">
-                {(Object.values(ModelType) as Array<ModelType>).map((type) => (
+
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">2. Escolha o Modelo</h3>
+                <div className="mt-4 grid grid-cols-2 gap-4">
                   <button
-                    key={type}
-                    onClick={() => setModelType(type)}
-                    className={`flex-1 py-3 px-4 rounded-lg text-sm font-semibold capitalize transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${
-                      modelType === type
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
+                    onClick={() => setModelType(ModelType.ADULT)}
+                    className={`w-full py-2 px-4 rounded-md text-center font-semibold transition-colors ${modelType === ModelType.ADULT ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
                   >
-                    {type}
+                    Adulto
                   </button>
-                ))}
+                  <button
+                    onClick={() => setModelType(ModelType.CHILD)}
+                    className={`w-full py-2 px-4 rounded-md text-center font-semibold transition-colors ${modelType === ModelType.CHILD ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                  >
+                    Infantil
+                  </button>
+                </div>
               </div>
-            </div>
-            <div>
-               <h2 className="text-xl font-semibold text-gray-700 mb-3">3. Gere sua Mídia</h2>
-                <button
-                onClick={handleGenerateImage}
-                disabled={!clothingImage || isGeneratingImage}
-                className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300 disabled:bg-blue-300 disabled:cursor-not-allowed flex items-center justify-center"
-                >
-                {isGeneratingImage && <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>}
-                Gerar Imagem
-                </button>
+
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">3. Escolha a Pose</h3>
+                <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {Object.keys(poses).map((poseKey) => (
+                     <button
+                        key={poseKey}
+                        onClick={() => setPose(poseKey)}
+                        className={`w-full py-2 px-4 rounded-md text-center font-semibold transition-colors text-sm ${pose === poseKey ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                      >
+                       {poseKey}
+                     </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">4. Gere sua Imagem</h3>
+                <div className="mt-4 flex flex-col space-y-3">
+                  <button
+                    onClick={handleGenerateImage}
+                    disabled={!clothingImage || isLoading}
+                    className="w-full bg-blue-500 text-white py-3 px-4 rounded-md font-semibold hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isLoading ? 'Gerando...' : 'Gerar Imagem'}
+                  </button>
+                </div>
+              </div>
+               {error && <p className="mt-4 text-center text-red-600 bg-red-100 p-3 rounded-md border border-red-200">{error}</p>}
             </div>
           </div>
 
-          {/* Result Column */}
-          <div className="bg-white p-6 rounded-xl shadow-lg flex flex-col justify-center items-center min-h-[400px]">
-            {!generatedImage && !isGeneratingImage && (
-              <div className="text-center text-gray-500">
-                <p className="text-lg">Sua imagem e vídeo aparecerão aqui.</p>
-                <p className="text-sm">Siga os passos ao lado para começar.</p>
-              </div>
-            )}
-            {isGeneratingImage && <Loader message="Criando sua imagem com o modelo..." />}
-            
-            {generatedImage && !isGeneratingImage && (
-              <div className="w-full space-y-4">
-                <h3 className="text-xl font-semibold text-gray-700 text-center">Resultado da Imagem</h3>
-                <div className="relative aspect-[9/16] w-full max-w-sm mx-auto bg-gray-200 rounded-lg overflow-hidden">
-                    <img src={generatedImage} alt="Modelo vestindo a roupa" className="w-full h-full object-cover"/>
-                </div>
-                
-                <button
-                  onClick={handleDownloadImage}
-                  className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300"
-                >
-                  Baixar Imagem
-                </button>
-
-                {!isGeneratingVideo && !generatedVideoUrl && (
-                    <>
-                    {!apiKeySelected && (
-                        <div className="text-center p-4 bg-yellow-100 border border-yellow-300 rounded-lg">
-                            <p className="text-sm text-yellow-800 mb-2">Para gerar vídeos, você precisa selecionar uma chave de API do Google AI Studio.</p>
-                            <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline mb-3 block">Saiba mais sobre cobranças.</a>
-                            <button onClick={handleSelectApiKey} className="bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-300">
-                                Selecionar Chave de API
-                            </button>
-                        </div>
-                    )}
-                    {apiKeySelected && (
-                        <button
-                            onClick={handleGenerateVideo}
-                            disabled={isGeneratingVideo}
-                            className="w-full bg-green-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-green-700 transition duration-300 disabled:bg-green-300"
+          <div className="bg-white p-6 rounded-lg border border-gray-200 flex flex-col items-center justify-center min-h-[500px]">
+             <div className="w-full h-full flex-grow flex items-center justify-center relative">
+                {isLoading ? (
+                  <Loader message={loadingMessage} />
+                ) : (
+                  <>
+                  {generatedImage ? (
+                      <div className="text-center w-full">
+                        <img src={generatedImage.url} alt="Modelo gerado" className="max-w-full mx-auto rounded-lg mb-4" style={{maxHeight: '65vh'}} />
+                        <a 
+                          href={generatedImage.url}
+                          download={`modelo-${modelType}.png`}
+                          className="inline-block bg-blue-600 text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors"
                         >
-                            Gerar Vídeo
-                        </button>
-                    )}
-                    </>
+                          Baixar Imagem
+                        </a>
+                      </div>
+                  ) : clothingImage ? (
+                    <img src={clothingImage.url} alt="Roupa carregada" className="max-w-full mx-auto rounded-lg" style={{maxHeight: '65vh'}}/>
+                  ) : (
+                    <div className="text-center text-gray-500">
+                      <p className="font-semibold text-lg">Sua imagem aparecerá aqui.</p>
+                      <p className="text-sm">Siga os passos ao lado para começar.</p>
+                    </div>
+                  )}
+                  </>
                 )}
-
-                {isGeneratingVideo && <Loader message={videoGenerationMessage} />}
-                
-                {generatedVideoUrl && !isGeneratingVideo && (
-                  <div className="space-y-3 text-center">
-                    <h3 className="text-lg font-semibold text-gray-700">Vídeo Gerado</h3>
-                    <video src={generatedVideoUrl} controls className="w-full rounded-lg"></video>
-                    <a
-                      href={generatedVideoUrl}
-                      download={`video-provador-virtual.mp4`}
-                      className="inline-block w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-300 text-center"
-                    >
-                      Salvar Vídeo
-                    </a>
-                  </div>
-                )}
-              </div>
-            )}
+             </div>
           </div>
         </div>
       </main>
